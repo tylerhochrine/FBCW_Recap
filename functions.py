@@ -1,5 +1,6 @@
 from datetime import timedelta
 from operator import itemgetter
+from collections import Counter
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
@@ -72,28 +73,48 @@ def merge_stats(position_type, player_stats, new_stats):
 
     return player_stats
 
-def stat_leaders(category, weekly_stats, best_stats=True):
-    stat_list = []
+def print_stat_leaders(category, weekly_stats, title, best_stats=True, n=3, medals=[]):
+    stat_list = {}
     for player in weekly_stats:
         if player[category] != '-':
-            stat_list.append([player['name'], player[category]])
-    
-    stat_list = sorted(stat_list, key=itemgetter(1), reverse=best_stats)
+            stat_list[player['name']] = player[category]
 
-    print(category + ':')
-    for i in range(10):
-        print(i+1, ':', stat_list[i][0], ',', str(stat_list[i][1]))
+    counts = Counter(stat_list)
+    common_values = [x[1] for x in counts.most_common()]
+    n_values = set(common_values[:n])
+
+    if best_stats == False:
+        n_values = set(common_values[-n:])
+
+    stat_list = {k:v for k,v in stat_list.items() if v in n_values}
+    stat_list = {k: v for k,v in sorted(stat_list.items(), key=lambda item: item[1], reverse=best_stats)}
+
+    print(title + ':', end=' ')
+    i = 0
+    for name,points in stat_list.items():
+        if medals:
+            name = medals[i] + name
+        points = int(points) if points.is_integer() else points
+        points = '(' + str(points) + ')'
+        print(name + ' ' + points, end='')
+        i += 1
     print('\n')
 
-def best_and_worst_start(highest_scoring_start, lowest_scoring_appearance, player):
+def print_appearance_of_the_week(appearance, title):
+    print(title + ':', end=' ')
+    points = int(appearance[1]) if appearance[1].is_integer() else appearance[1]
+    points = '(' + str(points) + ')'
+    print(appearance[0] + ' ' + points, '\n')
+
+def best_and_worst_start(highest_scoring_appearance, lowest_scoring_appearance, player):
     if player['IP'] != '-':
         appearance_score = calculate_fantasy_points('P', player)
-        if appearance_score > highest_scoring_start[1]:
-            highest_scoring_start = [player['name'], appearance_score]
+        if appearance_score > highest_scoring_appearance[1]:
+            highest_scoring_appearance = [player['name'], appearance_score]
         elif appearance_score < lowest_scoring_appearance[1]:
             lowest_scoring_appearance = [player['name'], appearance_score]
 
-    return highest_scoring_start, lowest_scoring_appearance
+    return highest_scoring_appearance, lowest_scoring_appearance
 
 def find_player_points(player_id, daily_stats):
     for player in daily_stats:

@@ -4,7 +4,7 @@ from datetime import timedelta
 import functions as func
 import data_storage as ds
 
-SEASON_WEEK = 6
+SEASON_WEEK = 8
 
 oauth = OAuth2(None, None, from_file='oauth2.json')
 league_id = '431.l.8434'
@@ -16,7 +16,7 @@ start_date, end_date = week_range[0], week_range[1] + timedelta(days=1)
 players = lg.taken_players() + lg.free_agents('B') + lg.free_agents('P')
 player_ids = []
 batter_weekly_stats, pitcher_weekly_stats = [], []
-highest_scoring_start = ['',0]
+highest_scoring_appearance = ['',0]
 lowest_scoring_appearance = ['',0]
 daily_stats = []
 day_of_week = 0
@@ -37,7 +37,7 @@ for player in daily_stats:
         batter_weekly_stats.append(player)
     elif player['position_type'] == 'P':
         pitcher_weekly_stats.append(player)
-        highest_scoring_start, lowest_scoring_appearance = func.best_and_worst_start(highest_scoring_start, lowest_scoring_appearance, player)
+        highest_scoring_appearance, lowest_scoring_appearance = func.best_and_worst_start(highest_scoring_appearance, lowest_scoring_appearance, player)
 
 day_of_week += 1
 
@@ -58,7 +58,7 @@ for day in func.daterange(start_date, end_date):
             batter_day_stats.append(player)
         elif player['position_type'] == 'P':
             pitcher_day_stats.append(player)
-            highest_scoring_start, lowest_scoring_appearance = func.best_and_worst_start(highest_scoring_start, lowest_scoring_appearance, player)
+            highest_scoring_appearance, lowest_scoring_appearance = func.best_and_worst_start(highest_scoring_appearance, lowest_scoring_appearance, player)
     day_of_week += 1
     
     for idx, player in enumerate(batter_day_stats):
@@ -79,15 +79,15 @@ for day in func.daterange(start_date, end_date):
     
     day_of_week += 1
 
-func.stat_leaders('fantasy_points', pitcher_weekly_stats)
-func.stat_leaders('fantasy_points', pitcher_weekly_stats, best_stats=False)
-print('Start of the Week: ', highest_scoring_start[0], ', ', highest_scoring_start[1], '\n')
-print('Fart of the Week: ', lowest_scoring_appearance[0], ', ', lowest_scoring_appearance[1], '\n')
-func.stat_leaders('K', pitcher_weekly_stats)
-func.stat_leaders('IP', pitcher_weekly_stats)
-func.stat_leaders('SV', pitcher_weekly_stats)
-func.stat_leaders('fantasy_points', batter_weekly_stats)
-func.stat_leaders('fantasy_points', batter_weekly_stats, best_stats=False)
-func.stat_leaders('HR', batter_weekly_stats)
-func.stat_leaders('TB', batter_weekly_stats)
-func.stat_leaders('SB', batter_weekly_stats)
+print('Week ' + str(SEASON_WEEK) + ' Recap!' + '\n')
+func.print_stat_leaders('fantasy_points', pitcher_weekly_stats, 'Top Pitchers', medals=['🥇','🥈','🥉'])
+func.print_appearance_of_the_week(highest_scoring_appearance, 'Start of the Week 💪🏻')
+func.print_appearance_of_the_week(lowest_scoring_appearance, 'Fart of the Week 😷')
+func.print_stat_leaders('K', pitcher_weekly_stats, 'K King 👑', n=1)
+func.print_stat_leaders('IP', pitcher_weekly_stats, 'Inning Eater 🍽️', n=1)
+func.print_stat_leaders('SV', pitcher_weekly_stats, 'Save King 👑', n=1)
+func.print_stat_leaders('fantasy_points', batter_weekly_stats, 'Top Hitters', medals=['🥇','🥈','🥉'])
+func.print_stat_leaders('fantasy_points', batter_weekly_stats, 'Bottom Batter 🚮🗑️', best_stats=False, n=1)
+func.print_stat_leaders('HR', batter_weekly_stats, 'HR King 👑', n=1)
+func.print_stat_leaders('TB', batter_weekly_stats, 'Biggest Bagger 💯', n=1)
+func.print_stat_leaders('SB', batter_weekly_stats, 'Speed Demon 💨', n=1)
